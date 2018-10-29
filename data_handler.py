@@ -18,11 +18,11 @@ class DataHandler:
 
         for p in data:
             tokens = word_tokenize(p['sentence'])
-            p['sentence'] = np.asarray([self._w2v.get_vector(t) for t in tokens if t in self._w2v.vocab])
-            
+            tmp = np.asarray([self._w2v.get_vector(t) for t in tokens if t in self._w2v.vocab])
+            tmp.resize((256,300))
+            p['sentence'] = np.transpose(tmp).reshape((300,256,1))
 
-        
-        
+            
         negatives = [p for p in data if p['label'] == 0]
         positives = [p for p in data if p['label'] == 1]
 

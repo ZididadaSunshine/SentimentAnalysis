@@ -6,6 +6,7 @@ from keras import Input, Model
 from keras.initializers import Ones
 from keras.layers import Conv2D, LSTM, Dropout, Activation, Reshape, Masking
 from data_handler import DataHandler
+from keras.utils.np_utils import to_categorical
 
 
 class SentimentModel:
@@ -23,7 +24,7 @@ class SentimentModel:
         dropout = Dropout(0.5)(conv1)
         reshape = Reshape((1, 256))(dropout)
         masking = Masking(mask_value=0, input_shape=(1, 256))(reshape)
-        lstm = LSTM(units=(2), activation='tanh', use_bias=True)(masking)
+        lstm = LSTM(units=(1), activation='tanh', use_bias=True)(masking)
         act = Activation('sigmoid')(lstm)
 
         self._model = Model(inputs=[input], outputs=[act])
@@ -34,18 +35,18 @@ class SentimentModel:
         train = self._data.get_training_data()
         validation = self._data.get_validation_data()
 
-        self._model.compile(loss = 'MSE', optimizer = 'RMSprop', metrics=['accuracy'])
+        self._model.compile(loss = 'binary_crossentropy', optimizer = 'adam', metrics=['accuracy'])
 
-        x = [d['sentence'] for d in train]
-        y = [d['label'] for d in train]
-        x_val = [d['sentence'] for d in validation]
-        y_val = [d['label'] for d in validation]
+        x = np.array([d['sentence'] for d in train])
+        y = np.array([d['label'] for d in train])
+        x_val = np.array([d['sentence'] for d in validation])
+        y_val = np.array([d['label'] for d in validation])
 
 
-        """ history = self._model.fit(
-            x = [x], 
+        history = self._model.fit(
+            x = x, 
             y = y,
             verbose=1,
-            validation_data=([x_val], y_val)) """
+            validation_data=(x_val, y_val))
 
-SentimentModel()
+SentimentModel().fit()
