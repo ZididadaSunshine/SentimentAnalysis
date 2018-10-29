@@ -1,13 +1,14 @@
-import gensim
 import numpy as np
 import requests
+from gensim.models import KeyedVectors
+from gensim.test.utils import datapath
 
 
 class Word2vec:
     def __init__(self):
         # Loads w2v model
         # NOTE: Model has to be downloaded from https://drive.google.com/file/d/0B7XkCwpI5KDYNlNUTTlSS21pQmM/edit
-        self.word2vec = gensim.models.KeyedVectors.load_word2vec_format('GoogleNews-vectors-negative300.bin', binary=True)
+        self.word2vec = KeyedVectors.load_word2vec_format(datapath('GoogleNews-vectors-negative300.bin'), binary=True)
         print("Loaded w2v model")
 
     def get_words(self, number):

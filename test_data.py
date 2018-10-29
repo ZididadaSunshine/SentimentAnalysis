@@ -65,6 +65,10 @@ class TestData:
 
         return tmp
 
+
+    def create_padded_batches(self, data, batch_size):
+        
+
 t = TestData()
 train, test, validation = t.get_data(1000)
 
