@@ -38,8 +38,24 @@ class Test:
         sequences = pad_sequences(sequences, maxlen=MAX_SEQUENCE_LENGTH)
         categories = to_categorical(dataset['category'], 2)
 
-        x_train, x_val = train_test_split(sequences, train_size=0.6)
-        y_train, y_val = train_test_split(categories, train_size=0.6)
+        negatives = dataset.index[dataset['category'] == 0].tolist()
+        positives = dataset.index[dataset['category'] == 1].tolist()
+
+        print(f"Positives: {len(negatives)}, Negatives: {len(positives)}")
+
+        x_pos_train, x_pos_val = train_test_split(np.take(sequences, positives, axis=0), train_size=0.6)
+        y_pos_train, y_pos_val = train_test_split(np.take(categories, positives, axis=0), train_size=0.6)
+
+        x_neg_train, x_neg_val = train_test_split(np.take(sequences, negatives, axis=0), train_size=0.6)
+        y_neg_train, y_neg_val = train_test_split(np.take(categories, negatives, axis=0), train_size=0.6)
+
+
+
+        x_train = np.concatenate((x_pos_train, x_neg_train))
+        y_train = np.concatenate((y_pos_train, y_neg_train))
+
+        x_val = np.concatenate((x_pos_val, x_neg_val))
+        y_val = np.concatenate((y_pos_val, y_neg_val))
             
         word2vec = KeyedVectors.load_word2vec_format(vectors_path, binary=True)
 
@@ -51,7 +67,6 @@ class Test:
         for word, i in word_index.items():
             if word in word2vec.vocab:
                 embedding_matrix[i] = word2vec.word_vec(word)
-        print('Null word embeddings: %d' % np.sum(np.sum(embedding_matrix, axis=1) == 0))
 
         main_input = Input(shape=(MAX_SEQUENCE_LENGTH,))
         embedding_layer = Embedding(embedding_matrix.shape[0],
@@ -72,11 +87,11 @@ class Test:
         act      = Activation('sigmoid')(lstm)
 
         model = Model(inputs=[main_input], outputs=[act])
-        model.compile(loss='categorical_crossentropy',optimizer='rmsprop',metrics=['acc'])
+        model.compile(loss='categorical_crossentropy', optimizer='rmsprop', metrics=['acc'])
 
         model.summary()
 
-        history = model.fit(x_train, y_train, validation_data=(x_val, y_val), epochs=15, batch_size=128)
+        history = model.fit(x_train, y_train, validation_data=(x_val, y_val), epochs=15, batch_size=128, shuffle=True)
         score = model.evaluate(x_val, y_val, verbose=0)
         print('Test loss:', score[0])
         print('Test accuracy:', score[1])
