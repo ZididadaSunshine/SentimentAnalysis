@@ -11,16 +11,18 @@ from keras.preprocessing.text import Tokenizer
 from keras.utils.np_utils import to_categorical
 from sklearn.model_selection import train_test_split
 from keras import Model
+from keras.optimizers import SGD
 from keras.layers import Embedding
 from keras.initializers import Ones
 from keras.models import Sequential
-from keras.layers import Conv2D, Input, LSTM, Embedding, Dropout, Activation, Reshape, Masking, Concatenate
+from keras.layers import Conv2D, Conv1D, Concatenate, Input, LSTM, Embedding, Dropout, Activation, Reshape, Masking, Concatenate
 
 # https://rajmak.wordpress.com/2017/12/07/text-classification-classifying-product-titles-using-convolutional-neural-network-and-word2vec-embedding/
 
 MAX_SEQUENCE_LENGTH = 256
 EMBEDDING_DIM = 300
 STOPWORDS = set(stopwords.words("english"))
+VALIDATION_SPLIT = 0.4
 
 class Test:
     def __init__(self, vectors_path = 'vectors.bin', data_path = 'data.csv'):
@@ -56,6 +58,17 @@ class Test:
 
         x_val = np.concatenate((x_pos_val, x_neg_val))
         y_val = np.concatenate((y_pos_val, y_neg_val))
+
+        """ indicies = list(dataset.index.values)
+        np.random.shuffle(indicies)
+        sequences = sequences[indicies]
+        categories = categories[indicies]
+        nb_validation_samples = int(VALIDATION_SPLIT * sequences.shape[0])
+        x_train = sequences[:-nb_validation_samples]
+        y_train = categories[:-nb_validation_samples]
+        x_val = sequences[-nb_validation_samples:]
+        y_val = categories[-nb_validation_samples:] """
+
             
         word2vec = KeyedVectors.load_word2vec_format(vectors_path, binary=True)
 
@@ -68,30 +81,39 @@ class Test:
             if word in word2vec.vocab:
                 embedding_matrix[i] = word2vec.word_vec(word)
 
-        main_input = Input(shape=(MAX_SEQUENCE_LENGTH,))
-        embedding_layer = Embedding(embedding_matrix.shape[0],
-                                    embedding_matrix.shape[1],
-                                    weights=[embedding_matrix],
-                                    input_length=MAX_SEQUENCE_LENGTH,
-                                    trainable=False)(main_input)
+        main_input          = Input(shape=(MAX_SEQUENCE_LENGTH,))
+        embedding_layer     = Embedding(embedding_matrix.shape[0],
+                                        embedding_matrix.shape[1],
+                                        weights=[embedding_matrix],
+                                        input_length=MAX_SEQUENCE_LENGTH,
+                                        trainable=False)(main_input)
+        concatenate_layer   = Concatenate(axis=1)([Conv1D(1, kw, padding='same', use_bias=True, bias_initializer=Ones(), activation='relu', strides=1)(embedding_layer) for kw in (3, 4, 5)])
+        dropout_layer       = Dropout(0.5)(concatenate_layer)
+        masking_layer       = Masking(mask_value=0)(dropout_layer)
+        lstm_layer          = LSTM(units=(2), activation='tanh', use_bias=True)(masking_layer)
+        activation_layer    = Activation('sigmoid')(lstm_layer)
 
-        reshape1 = Reshape((EMBEDDING_DIM, MAX_SEQUENCE_LENGTH, 1))(embedding_layer)
-        conv1    = Conv2D(filters=1, kernel_size=(EMBEDDING_DIM, 3), strides=(EMBEDDING_DIM, 1), padding='same', use_bias=True, bias_initializer=Ones(), activation='relu')(reshape1)
-        conv2    = Conv2D(filters=1, kernel_size=(EMBEDDING_DIM, 4), strides=(EMBEDDING_DIM,1), padding='same', use_bias=True, bias_initializer=Ones(), activation='relu')(reshape1)
-        conv3    = Conv2D(filters=1, kernel_size=(EMBEDDING_DIM, 5), strides=(EMBEDDING_DIM,1), padding='same', use_bias=True, bias_initializer=Ones(), activation='relu')(reshape1)
-        con      = Concatenate(axis=1)([conv1, conv2, conv3])
-        dropout  = Dropout(0.5)(con)
-        reshape2 = Reshape((3, MAX_SEQUENCE_LENGTH))(dropout)
-        masking  = Masking(mask_value=0)(reshape2)
-        lstm     = LSTM(units=(2), activation='tanh', use_bias=True)(masking)
-        act      = Activation('sigmoid')(lstm)
-
-        model = Model(inputs=[main_input], outputs=[act])
-        model.compile(loss='categorical_crossentropy', optimizer='rmsprop', metrics=['acc'])
-
+        model = Model(inputs=[main_input], outputs=[activation_layer])
+        model.compile(loss='categorical_crossentropy', optimizer=SGD(lr=0.1), metrics=['acc'])
         model.summary()
 
-        history = model.fit(x_train, y_train, validation_data=(x_val, y_val), epochs=15, batch_size=128, shuffle=True)
+        """ model = Sequential()
+        model.add(Embedding(embedding_matrix.shape[0],
+                            embedding_matrix.shape[1],
+                            weights=[embedding_matrix],
+                            input_length=MAX_SEQUENCE_LENGTH,
+                            trainable=False))
+        model.add(Conv1D(1, 3, padding='same', use_bias=True, bias_initializer=Ones(), activation='relu', strides=1))
+        model.add(Dropout(0.5))
+        model.add(Masking(mask_value=0))
+        model.add(LSTM(units=(2), activation='tanh', use_bias=True))
+        model.add(Activation('sigmoid'))
+
+        model.compile(loss='categorical_crossentropy', optimizer=SGD(lr=0.1), metrics=['acc'])
+
+        model.summary() """
+
+        history = model.fit(x_train, y_train, validation_data=(x_val, y_val), epochs=5, batch_size=128, shuffle=True)
         score = model.evaluate(x_val, y_val, verbose=0)
         print('Test loss:', score[0])
         print('Test accuracy:', score[1])
@@ -123,4 +145,49 @@ def sentence_converter(text):
     text = filter(lambda word: word not in STOPWORDS, text)
     return " ".join(text)
 
+
 Test()
+nb_words = 1000
+embedding_matrix = np.zeros((nb_words, EMBEDDING_DIM))
+""" submodels = []
+for kw in (3, 4, 5):
+    submodel = Sequential()
+    submodel.add(Embedding(embedding_matrix.shape[0],
+                    embedding_matrix.shape[1],
+                    weights=[embedding_matrix],
+                    input_length=MAX_SEQUENCE_LENGTH,
+                    trainable=False))
+    submodel.add(Conv1D(EMBEDDING_DIM, kw, padding='same', activation='relu', strides=1))
+    submodels.append(submodel)  """
+
+""" model = Sequential()
+model.add(Embedding(embedding_matrix.shape[0],
+                    embedding_matrix.shape[1],
+                    weights=[embedding_matrix],
+                    input_length=MAX_SEQUENCE_LENGTH,
+                    trainable=False))
+model.add(Conv1D(1, (EMBEDDING_DIM, 3), padding='same', use_bias=True, bias_initializer=Ones(), activation='relu', strides=(EMBEDDING_DIM, 1)))
+model.add(Dropout(0.5))
+model.add(Masking(mask_value=0))
+model.add(LSTM(units=(2), activation='tanh', use_bias=True))
+model.add(Activation('sigmoid'))
+
+model.compile(loss='categorical_crossentropy', optimizer=SGD(lr=0.1), metrics=['acc'])
+
+model.summary() """
+
+main_input          = Input(shape=(MAX_SEQUENCE_LENGTH,))
+embedding_layer     = Embedding(embedding_matrix.shape[0],
+                                embedding_matrix.shape[1],
+                                weights=[embedding_matrix],
+                                input_length=MAX_SEQUENCE_LENGTH,
+                                trainable=False)(main_input)
+concatenate_layer   = Concatenate(axis=1)([Conv1D(1, kw, padding='same', use_bias=True, bias_initializer=Ones(), activation='relu', strides=1)(embedding_layer) for kw in (3, 4, 5)])
+dropout_layer       = Dropout(0.5)(concatenate_layer)
+masking_layer       = Masking(mask_value=0)(dropout_layer)
+lstm_layer          = LSTM(units=(2), activation='tanh', use_bias=True)(masking_layer)
+activation_layer    = Activation('sigmoid')(lstm_layer)
+
+model = Model(inputs=[main_input], outputs=[activation_layer])
+model.compile(loss='categorical_crossentropy', optimizer=SGD(lr=0.1), metrics=['acc'])
+model.summary()
