@@ -97,22 +97,6 @@ class Test:
         model.compile(loss='categorical_crossentropy', optimizer=SGD(lr=0.1), metrics=['acc'])
         model.summary()
 
-        """ model = Sequential()
-        model.add(Embedding(embedding_matrix.shape[0],
-                            embedding_matrix.shape[1],
-                            weights=[embedding_matrix],
-                            input_length=MAX_SEQUENCE_LENGTH,
-                            trainable=False))
-        model.add(Conv1D(1, 3, padding='same', use_bias=True, bias_initializer=Ones(), activation='relu', strides=1))
-        model.add(Dropout(0.5))
-        model.add(Masking(mask_value=0))
-        model.add(LSTM(units=(2), activation='tanh', use_bias=True))
-        model.add(Activation('sigmoid'))
-
-        model.compile(loss='categorical_crossentropy', optimizer=SGD(lr=0.1), metrics=['acc'])
-
-        model.summary() """
-
         history = model.fit(x_train, y_train, validation_data=(x_val, y_val), epochs=5, batch_size=128, shuffle=True)
         score = model.evaluate(x_val, y_val, verbose=0)
         print('Test loss:', score[0])
@@ -147,47 +131,3 @@ def sentence_converter(text):
 
 
 Test()
-nb_words = 1000
-embedding_matrix = np.zeros((nb_words, EMBEDDING_DIM))
-""" submodels = []
-for kw in (3, 4, 5):
-    submodel = Sequential()
-    submodel.add(Embedding(embedding_matrix.shape[0],
-                    embedding_matrix.shape[1],
-                    weights=[embedding_matrix],
-                    input_length=MAX_SEQUENCE_LENGTH,
-                    trainable=False))
-    submodel.add(Conv1D(EMBEDDING_DIM, kw, padding='same', activation='relu', strides=1))
-    submodels.append(submodel)  """
-
-""" model = Sequential()
-model.add(Embedding(embedding_matrix.shape[0],
-                    embedding_matrix.shape[1],
-                    weights=[embedding_matrix],
-                    input_length=MAX_SEQUENCE_LENGTH,
-                    trainable=False))
-model.add(Conv1D(1, (EMBEDDING_DIM, 3), padding='same', use_bias=True, bias_initializer=Ones(), activation='relu', strides=(EMBEDDING_DIM, 1)))
-model.add(Dropout(0.5))
-model.add(Masking(mask_value=0))
-model.add(LSTM(units=(2), activation='tanh', use_bias=True))
-model.add(Activation('sigmoid'))
-
-model.compile(loss='categorical_crossentropy', optimizer=SGD(lr=0.1), metrics=['acc'])
-
-model.summary() """
-
-main_input          = Input(shape=(MAX_SEQUENCE_LENGTH,))
-embedding_layer     = Embedding(embedding_matrix.shape[0],
-                                embedding_matrix.shape[1],
-                                weights=[embedding_matrix],
-                                input_length=MAX_SEQUENCE_LENGTH,
-                                trainable=False)(main_input)
-concatenate_layer   = Concatenate(axis=1)([Conv1D(1, kw, padding='same', use_bias=True, bias_initializer=Ones(), activation='relu', strides=1)(embedding_layer) for kw in (3, 4, 5)])
-dropout_layer       = Dropout(0.5)(concatenate_layer)
-masking_layer       = Masking(mask_value=0)(dropout_layer)
-lstm_layer          = LSTM(units=(2), activation='tanh', use_bias=True)(masking_layer)
-activation_layer    = Activation('sigmoid')(lstm_layer)
-
-model = Model(inputs=[main_input], outputs=[activation_layer])
-model.compile(loss='categorical_crossentropy', optimizer=SGD(lr=0.1), metrics=['acc'])
-model.summary()
