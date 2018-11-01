@@ -15,7 +15,7 @@ from keras.optimizers import SGD
 from keras.layers import Embedding
 from keras.initializers import Ones
 from keras.models import Sequential
-from keras.layers import Conv2D, Conv1D, Concatenate, Input, LSTM, Embedding, Dropout, Activation, Reshape, Masking, Concatenate
+from keras.layers import Conv2D, Conv1D, Concatenate, Input, LSTM, Embedding, Dropout, Activation, Reshape, Masking, Concatenate, Dense
 
 # https://rajmak.wordpress.com/2017/12/07/text-classification-classifying-product-titles-using-convolutional-neural-network-and-word2vec-embedding/
 
@@ -87,13 +87,13 @@ class Test:
                                         weights=[embedding_matrix],
                                         input_length=MAX_SEQUENCE_LENGTH,
                                         trainable=False)(main_input)
-        concatenate_layer   = Concatenate(axis=1)([Conv1D(1, kw, padding='same', use_bias=True, bias_initializer=Ones(), activation='relu', strides=1)(embedding_layer) for kw in (3, 4, 5)])
+        concatenate_layer   = Concatenate(axis=2)([Conv1D(1, kw, padding='same', use_bias=True, bias_initializer=Ones(), activation='relu', strides=1)(embedding_layer) for kw in (3, 4, 5)])
         dropout_layer       = Dropout(0.5)(concatenate_layer)
         masking_layer       = Masking(mask_value=0)(dropout_layer)
-        lstm_layer          = LSTM(units=(2), activation='tanh', use_bias=True)(masking_layer)
-        activation_layer    = Activation('sigmoid')(lstm_layer)
+        lstm_layer          = LSTM(units=(128), activation='tanh', use_bias=True)(masking_layer)
+        dense_layer         = Dense(units=(2), activation='sigmoid')(lstm_layer)
 
-        model = Model(inputs=[main_input], outputs=[activation_layer])
+        model = Model(inputs=[main_input], outputs=[dense_layer])
         model.compile(loss='categorical_crossentropy', optimizer=SGD(lr=0.1), metrics=['acc'])
         model.summary()
 
@@ -128,6 +128,5 @@ def sentence_converter(text):
     text = text.strip().lower().split()
     text = filter(lambda word: word not in STOPWORDS, text)
     return " ".join(text)
-
 
 Test()
