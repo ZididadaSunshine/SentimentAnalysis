@@ -3,13 +3,7 @@ from keras.utils.data_utils import get_file
 import numpy as np
 import zipfile
 import os
-
-from keras_preprocessing.text import Tokenizer
 from sklearn.model_selection import train_test_split
-from nltk.corpus import stopwords
-
-STOPWORDS = set(stopwords.words("english"))
-ORIGIN = 'http://cs.stanford.edu/people/alecmgo/trainingandtestdata.zip'
 
 
 def _category(val):
@@ -21,23 +15,22 @@ def _category(val):
 
 def _sentence(text):
     text = text.strip().lower().split()
-    text = filter(lambda word: word not in STOPWORDS, text)
     return " ".join(text)
 
 
 def load_data(path='trainingandtestdata.zip'):
-    """Loads the stanford large movie review dataset
+    """Loads the sentiment 140 dataset
 
     # Arguments
         path: path where to cache the dataset locally
             (relative to ~/.keras/datasets).
     # Returns
-        Tuple of Numpy arrays: `(x_train, y_train), (x_test, y_test)`.
+        Tuple of Numpy arrays: `(x_train, y_train), (x_val, y_val), (x_test, y_test)`.
     """
 
     path = get_file(
         path,
-        origin=ORIGIN)
+        origin='http://cs.stanford.edu/people/alecmgo/trainingandtestdata.zip')
 
     cache_dir = os.path.join(os.path.expanduser('~'), '.keras/datasets/')
     data_dir = cache_dir + 'sentiment_140.npz'
@@ -52,33 +45,19 @@ def load_data(path='trainingandtestdata.zip'):
                                  names=['category', 'sentence'],
                                  converters={'category': _category, 'sentence': _sentence})
 
-            # Fit the tokenizer
-            tokenizer = Tokenizer()
-            tokenizer.fit_on_texts(df['sentence'])
-
-            # Use the tokenizer to convert text to sequences
-            sequences = tokenizer.texts_to_sequences(df['sentence'])
-
-            df = pd.DataFrame({'category': df['category'], 'sequence': sequences})
-
             df = df.sample(frac=1).reset_index(drop=True)
 
-            train, val = train_test_split(df, train_size=0.6)
-            val, test = train_test_split(val, train_size=0.5)
+            x_train, x_test, y_train, y_test = train_test_split(df['sentence'], df['category'], train_size=0.6)
+            x_test, x_val, y_test, y_val = train_test_split(x_test, y_test, train_size=0.5)
 
-            np.savez(cache_dir + 'sentiment_140.npz', train=train, test=test, val=val)
+            np.savez(cache_dir + 'sentiment_140.npz',
+                     x_train=x_train, y_train=y_train,
+                     x_val=x_val, y_val=y_val,
+                     x_test=x_test, y_test=y_test)
     else:
         with np.load(cache_dir + 'sentiment_140.npz') as f:
-            train, test, val = f['train'], f['test'], f['val']
+            x_train, y_train = f['x_train'], f['y_train']
+            x_val, y_val = f['x_val'], f['y_val']
+            x_test, y_test = f['x_test'], f['y_test']
 
-    return train, test, val
-
-
-def get_test_data():
-    _, test, _ = load_data()
-    return test
-
-
-def get_train_val_data():
-    train, _, val = load_data()
-    return train, val
+    return (x_train, y_train), (x_val, y_val), (x_test, y_test)

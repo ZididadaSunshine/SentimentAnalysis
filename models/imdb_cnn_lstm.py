@@ -13,7 +13,7 @@ from keras.layers import Dense, Dropout, Activation
 from keras.layers import Embedding
 from keras.layers import LSTM
 from keras.layers import Conv1D, MaxPooling1D
-from keras.datasets import imdb
+from datasets import imdb
 
 # Embedding
 max_features = 20000
@@ -39,14 +39,19 @@ Only 2 epochs are needed as the dataset is very small.
 '''
 
 print('Loading data...')
-(x_train, y_train), (x_test, y_test) = imdb.load_data(num_words=max_features)
+(x_train, y_train), (x_val, y_val), (x_test, y_test) = imdb.load_data(num_words=max_features)
 print(len(x_train), 'train sequences')
+print(len(x_val), 'validation sequences')
 print(len(x_test), 'test sequences')
 
 print('Pad sequences (samples x time)')
+
 x_train = sequence.pad_sequences(x_train, maxlen=maxlen)
+x_val = sequence.pad_sequences(x_val, maxlen=maxlen)
 x_test = sequence.pad_sequences(x_test, maxlen=maxlen)
+
 print('x_train shape:', x_train.shape)
+print('x_val shape:', x_val.shape)
 print('x_test shape:', x_test.shape)
 
 print('Build model...')
@@ -72,7 +77,7 @@ print('Train...')
 history = model.fit(x_train, y_train,
                     batch_size=batch_size,
                     epochs=epochs,
-                    validation_data=(x_test, y_test))
+                    validation_data=(x_val, y_val))
 score, acc = model.evaluate(x_test, y_test, batch_size=batch_size)
 print('Test score:', score)
 print('Test accuracy:', acc)
