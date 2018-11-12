@@ -71,10 +71,6 @@ for word, i in word_index.items():
 print('Null word embeddings: %d' % np.sum(np.sum(embedding_matrix, axis=1) == 0))
 
 print('Build model...')
-
-word_index = tokenizer.word_index
-nb_words = len(word_index)+1
-
 model = Sequential()
 model.add(Embedding(embedding_matrix.shape[0],
                     embedding_matrix.shape[1],
