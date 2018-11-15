@@ -10,8 +10,9 @@ from keras.layers import LSTM
 from keras.layers import Conv1D, MaxPooling1D
 from keras_preprocessing.text import Tokenizer
 
-from datasets import sentiment_140
+from datasets import sentiment_140_neg
 from w2v import google_news_vectors_negative300
+
 
 # Embedding
 maxlen = 100
@@ -30,14 +31,11 @@ batch_size = 512
 epochs = 2
 
 print('Loading data...')
-(x_train, y_train), (x_val, y_val), (x_test, y_test) = sentiment_140.load_data()
-
-
+(x_train, y_train), (x_val, y_val), (x_test, y_test) = sentiment_140_neg.load_data()
 
 print('Fitting tokenizer...')
 tokenizer = Tokenizer()
 tokenizer.fit_on_texts(np.concatenate((x_train, x_val, x_test)))
-
 
 print('Convert text to sequences')
 x_train = tokenizer.texts_to_sequences(x_train)
@@ -65,10 +63,16 @@ print('Preparing embedding matrix')
 word_index = tokenizer.word_index
 nb_words = len(word_index)+1
 
-embedding_matrix = np.zeros((nb_words, 300))
+nope = []
+embedding_matrix = np.zeros((nb_words, 301))
 for word, i in word_index.items():
+    word, *neg = word.split('_')
+
     if word in word2vec.vocab:
-        embedding_matrix[i] = word2vec.word_vec(word)
+        embedding_matrix[i][:300] = word2vec.word_vec(word)
+
+    if neg:
+        embedding_matrix[i][301] = 1
 print('Null word embeddings: %d' % np.sum(np.sum(embedding_matrix, axis=1) == 0))
 
 print('Build model...')
