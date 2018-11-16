@@ -6,8 +6,9 @@ import os
 from sklearn.model_selection import train_test_split
 from KeywordExtraction.preprocessing.text_preprocessing import get_processed_text
 
-max = 1600000
-counter = 1
+row_count = 0
+count = 0
+status = 0
 
 
 def _category(val):
@@ -18,11 +19,19 @@ def _category(val):
 
 
 def _sentence(text):
-    global counter
-    global max
-    if counter % 1000 == 0:
-        print((counter / max) * 100)
-    counter += 1
+    global count
+    global status
+
+    try:
+        new_status = int((count / row_count) * 100)
+        if status != new_status:
+            status = new_status
+            print(f'{status}%', flush=True)
+    except ValueError:
+        pass
+    finally:
+        count += 1
+
     return " ".join(get_processed_text(text, True))
 
 
@@ -46,12 +55,16 @@ def load_data(path='trainingandtestdata.zip'):
     if not os.path.exists(data_dir):
         with zipfile.ZipFile(path) as archive:
             with archive.open('training.1600000.processed.noemoticon.csv') as csv:
+                global row_count
+                row_count = sum(1 for _ in csv)
+                csv.seek(0)
                 df = pd.read_csv(csv,
                                  sep=',',
                                  encoding='latin-1',
                                  usecols=[0, 5],
                                  names=['category', 'sentence'],
-                                 converters={'category': _category, 'sentence': _sentence})
+                                 converters={'category': _category,
+                                             'sentence': _sentence})
             df = df.sample(frac=1).reset_index(drop=True)
 
             x_train, x_test, y_train, y_test = train_test_split(df['sentence'], df['category'], train_size=0.6)
@@ -67,6 +80,6 @@ def load_data(path='trainingandtestdata.zip'):
             x_val, y_val = f['x_val'], f['y_val']
             x_test, y_test = f['x_test'], f['y_test']
 
-    return (x_train, y_train), (x_val, y_val), (x_test, y_test)
-
-
+    return (x_train, y_train), \
+           (x_val, y_val), \
+           (x_test, y_test)

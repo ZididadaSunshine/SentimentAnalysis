@@ -27,8 +27,8 @@ pool_size = 4
 lstm_output_size = 70
 
 # Training
-batch_size = 512
-epochs = 2
+batch_size = 128
+epochs = 5
 
 print('Loading data...')
 (x_train, y_train), (x_val, y_val), (x_test, y_test) = sentiment_140_neg.load_data()
@@ -63,7 +63,6 @@ print('Preparing embedding matrix')
 word_index = tokenizer.word_index
 nb_words = len(word_index)+1
 
-nope = []
 embedding_matrix = np.zeros((nb_words, 301))
 for word, i in word_index.items():
     word, *neg = word.split('_')
@@ -124,3 +123,6 @@ model.save(f'{output_dir}/model.h5')
 
 with open(f'{output_dir}/history.pkl', 'wb') as f:
     pickle.dump(history.history, f)
+
+with open(f'{output_dir}/tokenizer.pkl', 'wb') as f:
+    pickle.dump(tokenizer, f)

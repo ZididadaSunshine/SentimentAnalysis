@@ -7,12 +7,12 @@ from tensorflow.python.saved_model import builder, tag_constants
 from tensorflow.python.saved_model.signature_def_utils import predict_signature_def
 
 
-def export_h5_to_pb(model_path = None, export_path = None):
+def export_h5_to_pb(model_path=None, export_path=None):
     """Converts a keras h5 model to a protobuf model
 
         # Arguments
-            model_path: path to the directory containing the model
-                (if not specified, the sub-folder last added to the output folder is selected)
+            model_path: path to the model
+                (if not specified, selects the latest model in the output folder)
             export_path: path to the desired export directory
                 (if not specified, a sub-folder is created in the model_path directory)
     """
@@ -28,13 +28,14 @@ def export_h5_to_pb(model_path = None, export_path = None):
         while os.path.exists(f'../output/{str(i)}'):
             i = i + 1
 
-        model_path = f'../output/{str(i-1)}'
+        model_path = f'../output/{str(i-1)}/model.h5'
+        model_dir = os.path.dirname(model_path)
 
     if export_path is None:
-        export_path = f'{model_path}/protobuf'
+        export_path = f'{model_dir}/protobuf'
 
     # Load the Keras model
-    model = load_model(model_path + '/model.h5')
+    model = load_model(model_path)
 
     saved_model_builder = builder.SavedModelBuilder(export_path)
 
@@ -47,3 +48,5 @@ def export_h5_to_pb(model_path = None, export_path = None):
                                                          signature_def_map={'predict': signature})
 
     saved_model_builder.save()
+
+export_h5_to_pb()
