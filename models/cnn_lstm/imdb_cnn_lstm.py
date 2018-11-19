@@ -1,13 +1,9 @@
-"""Train a recurrent convolutional network on the IMDB sentiment
-classification task.
-
-Gets to 0.8498 test accuracy after 2 epochs. 41s/epoch on K520 GPU.
-"""
-
 import os
 import _pickle as pickle
+import numpy as np
 
 from keras.preprocessing import sequence
+from keras_preprocessing.text import Tokenizer
 from keras.models import Sequential
 from keras.layers import Dense, Dropout, Activation
 from keras.layers import Embedding
@@ -16,6 +12,7 @@ from keras.layers import Conv1D, MaxPooling1D
 from datasets import imdb
 
 # Embedding
+
 max_features = 20000
 maxlen = 100
 embedding_size = 128

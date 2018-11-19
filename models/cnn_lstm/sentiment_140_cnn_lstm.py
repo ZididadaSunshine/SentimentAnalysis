@@ -32,12 +32,9 @@ epochs = 2
 print('Loading data...')
 (x_train, y_train), (x_val, y_val), (x_test, y_test) = sentiment_140.load_data()
 
-
-
 print('Fitting tokenizer...')
 tokenizer = Tokenizer()
 tokenizer.fit_on_texts(np.concatenate((x_train, x_val, x_test)))
-
 
 print('Convert text to sequences')
 x_train = tokenizer.texts_to_sequences(x_train)

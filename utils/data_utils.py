@@ -7,7 +7,7 @@ from tensorflow.python.saved_model import builder, tag_constants
 from tensorflow.python.saved_model.signature_def_utils import predict_signature_def
 
 
-def export_h5_to_pb(model_path = None, export_path = None):
+def export_h5_to_pb(model_path=None, export_path=None):
     """Converts a keras h5 model to a protobuf model
 
         # Arguments

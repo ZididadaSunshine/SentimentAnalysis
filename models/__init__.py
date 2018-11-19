@@ -1,2 +1,1 @@
-from . import imdb_cnn_lstm
-from . import sentiment_140_pretrained_cnn_lstm
+from models.cnn_lstm import imdb_cnn_lstm, sentiment_140_cnn_lstm
