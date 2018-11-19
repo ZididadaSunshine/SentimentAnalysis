@@ -1,5 +1,3 @@
-import os
-import _pickle as pickle
 import numpy as np
 
 from keras.preprocessing import sequence
@@ -11,6 +9,7 @@ from keras.layers import Conv1D, MaxPooling1D
 from keras_preprocessing.text import Tokenizer
 
 from datasets import sentiment_140
+from utils.data_utils import export
 from w2v import google_news_vectors_negative300
 
 # Embedding
@@ -101,19 +100,4 @@ score, acc = model.evaluate(x_test, y_test, batch_size=batch_size)
 print('Test score:', score)
 print('Test accuracy:', acc)
 
-# Create an output folder if it doesn't exist
-if not os.path.exists('../output'):
-    os.makedirs('../output')
-
-# Create a new folder for the model
-i = 0
-while os.path.exists(f'../output/{str(i)}'):
-    i = i + 1
-
-output_dir = f'../output/{str(i)}'
-os.makedirs(output_dir)
-
-model.save(f'{output_dir}/model.h5')
-
-with open(f'{output_dir}/history.pkl', 'wb') as f:
-    pickle.dump(history.history, f)
+export(model, history, tokenizer)

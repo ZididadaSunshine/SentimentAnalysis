@@ -1,9 +1,5 @@
-import os
-import _pickle as pickle
-import numpy as np
-
 from keras.preprocessing import sequence
-from keras_preprocessing.text import Tokenizer
+from keras.callbacks import EarlyStopping
 from keras.models import Sequential
 from keras.layers import Dense, Dropout, Activation
 from keras.layers import Embedding
@@ -12,6 +8,7 @@ from keras.layers import Conv1D, MaxPooling1D
 from datasets import imdb
 
 # Embedding
+from utils.data_utils import export
 
 max_features = 20000
 maxlen = 100
@@ -27,7 +24,7 @@ lstm_output_size = 70
 
 # Training
 batch_size = 30
-epochs = 2
+epochs = 1
 
 '''
 Note:
@@ -74,24 +71,10 @@ print('Train...')
 history = model.fit(x_train, y_train,
                     batch_size=batch_size,
                     epochs=epochs,
+                    callbacks=[EarlyStopping(patience=2)],
                     validation_data=(x_val, y_val))
 score, acc = model.evaluate(x_test, y_test, batch_size=batch_size)
 print('Test score:', score)
 print('Test accuracy:', acc)
 
-# Create an output folder if it doesn't exist
-if not os.path.exists('../output'):
-    os.makedirs('../output')
-
-# Create a new folder for the model
-i = 0
-while os.path.exists(f'../output/{str(i)}'):
-    i = i + 1
-
-output_dir = f'../output/{str(i)}'
-os.makedirs(output_dir)
-
-model.save(f'{output_dir}/model.h5')
-
-with open(f'{output_dir}/history.pkl', 'wb') as f:
-    pickle.dump(history.history, f)
+export(model, history)
