@@ -27,7 +27,7 @@ lstm_output_size = 70
 
 # Training
 batch_size = 128
-epochs = 5
+epochs = 1
 
 print('Loading data...')
 (x_train, y_train), (x_val, y_val), (x_test, y_test) = sentiment_140_neg.load_data()

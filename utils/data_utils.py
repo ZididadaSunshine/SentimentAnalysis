@@ -2,11 +2,8 @@ import errno
 import json
 import os
 import _pickle as pickle
-
+import tensorflow as tf
 from keras import backend, Sequential
-from tensorflow.python.saved_model import builder, tag_constants
-from tensorflow.python.saved_model.signature_def_utils import predict_signature_def
-
 
 def export(model: Sequential, history=None, tokenizer=None, output_dir=None, **kwargs):
     """Exports the model, training history and relevant files to an output directory
@@ -36,18 +33,14 @@ def export(model: Sequential, history=None, tokenizer=None, output_dir=None, **k
 
     model.save(f'{output_dir}/model.h5')
 
-    saved_model_builder = builder.SavedModelBuilder(f'{output_dir}/protobuf')
-
-    signature = predict_signature_def(inputs={'sequences': model.input},
-                                      outputs={'sentiment': model.output})
-
     with backend.get_session() as sess:
-        saved_model_builder.add_meta_graph_and_variables(sess=sess,
-                                                         tags=[tag_constants.SERVING],
-                                                         signature_def_map={'predict': signature})
-
-    saved_model_builder.save()
-
+        tf.saved_model.simple_save(
+            sess,
+            f'{output_dir}',
+            inputs={'sequence': model.input},
+            outputs={'sentiments': model.output}
+        )
+        
     if history:
         with open(f'{output_dir}/history.pkl', 'wb') as f:
             pickle.dump(history.history, f)

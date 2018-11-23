@@ -4,6 +4,11 @@ import numpy as np
 import zipfile
 import os
 from sklearn.model_selection import train_test_split
+from KeywordExtraction.preprocessing.text_preprocessing import get_processed_text
+
+row_count = 0
+count = 0
+status = 0
 
 
 def _category(val):
@@ -14,8 +19,20 @@ def _category(val):
 
 
 def _sentence(text):
-    text = text.strip().lower().split()
-    return " ".join(text)
+    global count
+    global status
+
+    try:
+        new_status = int((count / row_count) * 100)
+        if status != new_status:
+            status = new_status
+            print(f'{status}%', flush=True)
+    except ValueError:
+        pass
+    finally:
+        count += 1
+
+    return " ".join(get_processed_text(text))
 
 
 def load_data(path='trainingandtestdata.zip'):
