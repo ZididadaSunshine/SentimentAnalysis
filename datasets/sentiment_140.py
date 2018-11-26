@@ -5,10 +5,10 @@ import zipfile
 import os
 from sklearn.model_selection import train_test_split
 from KeywordExtraction.preprocessing.text_preprocessing import get_processed_text
+import random
 
-row_count = 0
 count = 0
-status = 0
+random.seed()
 
 
 def _category(val):
@@ -20,13 +20,10 @@ def _category(val):
 
 def _sentence(text):
     global count
-    global status
 
     try:
-        new_status = int((count / row_count) * 100)
-        if status != new_status:
-            status = new_status
-            print(f'{status}%', flush=True)
+        if count % random.randint(1000, 10000) == 0:
+            print(f'Still processing, please be patient... rows processed: {count}', flush=True)
     except ValueError:
         pass
     finally:
