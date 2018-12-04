@@ -8,6 +8,7 @@ from KeywordExtraction.preprocessing.text_preprocessing import get_processed_tex
 import random
 
 count = 0
+max_rows = 1600000
 random.seed()
 
 
@@ -22,8 +23,8 @@ def _sentence(text):
     global count
 
     try:
-        if count % random.randint(1000, 10000) == 0:
-            print(f'Still processing, please be patient... rows processed: {count}', flush=True)
+        if count % 10000 == 0:
+            print(f'Still processing, please be patient... progress: {(count / max_rows) * 100 : 2.2f}% ', flush=True)
     except ValueError:
         pass
     finally:

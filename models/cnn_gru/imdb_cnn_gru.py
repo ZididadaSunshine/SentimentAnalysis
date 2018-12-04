@@ -24,7 +24,7 @@ gru_output_size = 70
 
 # Training
 batch_size = 30
-epochs = 1
+epochs = 5
 
 '''
 Note:
@@ -52,7 +52,7 @@ print('Build model...')
 
 model = Sequential()
 model.add(Embedding(max_features, embedding_size, input_length=maxlen))
-model.add(Dropout(0.25))
+model.add(Dropout(0.5))
 model.add(Conv1D(filters,
                  kernel_size,
                  padding='valid',

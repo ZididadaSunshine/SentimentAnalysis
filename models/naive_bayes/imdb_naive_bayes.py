@@ -7,6 +7,14 @@ from keras.preprocessing import sequence
 maxlen = 100
 
 (x_train, y_train), (x_val, y_val), (x_test, y_test) = imdb.load_data()
+print(f'Received following shapes: ')
+print(f'x_train: {len(x_train)}, {np.shape(x_train)}')
+print(f'y_train: {len(y_train)}, {np.shape(y_train)}')
+print(f'x_val: {len(x_val)}, {np.shape(x_val)}')
+print(f'y_val: {len(y_val)}, {np.shape(y_val)}')
+print(f'x_test: {len(x_test)}, {np.shape(x_test)}')
+print(f'y_test: {len(y_test)}, {np.shape(y_test)}')
+
 
 x_train = np.concatenate((x_train, x_val))
 y_train = np.concatenate((y_train, y_val))
