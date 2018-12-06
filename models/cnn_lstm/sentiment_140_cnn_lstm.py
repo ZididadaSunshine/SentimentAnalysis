@@ -14,7 +14,7 @@ from w2v import google_news_vectors_negative300
 
 # Embedding
 maxlen = 100
-embedding_size = 128
+max_features = 20000
 
 # Convolution
 kernel_size = 5
@@ -25,8 +25,8 @@ pool_size = 4
 lstm_output_size = 70
 
 # Training
-batch_size = 512
-epochs = 2
+batch_size = 2048
+epochs = 7
 
 print('Loading data...')
 (x_train, y_train), (x_val, y_val), (x_test, y_test) = sentiment_140.load_data()
@@ -60,7 +60,7 @@ word2vec = google_news_vectors_negative300.load_w2v()
 print('Preparing embedding matrix')
 word_index = tokenizer.word_index
 nb_words = len(word_index)+1
-
+print(nb_words)
 embedding_matrix = np.zeros((nb_words, 300))
 for word, i in word_index.items():
     if word in word2vec.vocab:
@@ -100,4 +100,4 @@ score, acc = model.evaluate(x_test, y_test, batch_size=batch_size)
 print('Test score:', score)
 print('Test accuracy:', acc)
 
-export(model, history, tokenizer)
+export(model, history, tokenizer, name="sentiment_140_cnn_lstm", score=score, acc=acc)

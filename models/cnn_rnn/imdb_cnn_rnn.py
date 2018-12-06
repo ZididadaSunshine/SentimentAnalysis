@@ -24,7 +24,7 @@ rnn_output_size = 70
 
 # Training
 batch_size = 30
-epochs = 1
+epochs = 2
 
 '''
 Note:
@@ -77,4 +77,4 @@ score, acc = model.evaluate(x_test, y_test, batch_size=batch_size)
 print('Test score:', score)
 print('Test accuracy:', acc)
 
-export(model, history)
+export(model, history, name="imdb_cnn_rnn", score=score, acc=acc)

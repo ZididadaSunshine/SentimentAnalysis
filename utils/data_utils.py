@@ -36,7 +36,7 @@ def export(model: Sequential, history=None, tokenizer=None, output_dir=None, **k
     with backend.get_session() as sess:
         tf.saved_model.simple_save(
             sess,
-            f'{output_dir}',
+            f'{output_dir}/protobuf/',
             inputs={'sequence': model.input},
             outputs={'sentiments': model.output}
         )

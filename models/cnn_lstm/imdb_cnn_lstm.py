@@ -77,4 +77,4 @@ score, acc = model.evaluate(x_test, y_test, batch_size=batch_size)
 print('Test score:', score)
 print('Test accuracy:', acc)
 
-export(model, history)
+export(model, history, name="imdb_cnn_lstm", score=score, acc=acc)

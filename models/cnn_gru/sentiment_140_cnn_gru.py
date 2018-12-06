@@ -100,4 +100,4 @@ score, acc = model.evaluate(x_test, y_test, batch_size=batch_size)
 print('Test score:', score)
 print('Test accuracy:', acc)
 
-export(model, history, tokenizer)
+export(model, history, tokenizer, name="sentiment_140_cnn_gru", score=score, acc=acc)

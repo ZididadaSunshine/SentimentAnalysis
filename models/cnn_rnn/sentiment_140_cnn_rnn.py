@@ -14,7 +14,6 @@ from w2v import google_news_vectors_negative300
 
 # Embedding
 maxlen = 100
-embedding_size = 128
 
 # Convolution
 kernel_size = 5
@@ -26,7 +25,7 @@ rnn_output_size = 70
 
 # Training
 batch_size = 512
-epochs = 2
+epochs = 5
 
 print('Loading data...')
 (x_train, y_train), (x_val, y_val), (x_test, y_test) = sentiment_140.load_data()
@@ -100,4 +99,4 @@ score, acc = model.evaluate(x_test, y_test, batch_size=batch_size)
 print('Test score:', score)
 print('Test accuracy:', acc)
 
-export(model, history, tokenizer)
+export(model, history, tokenizer, name="sentiment_140_cnn_rnn", score=score, acc=acc)
