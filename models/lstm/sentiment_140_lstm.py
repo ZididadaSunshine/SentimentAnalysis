@@ -86,8 +86,6 @@ model.compile(loss='binary_crossentropy',
               optimizer='adam',
               metrics=['accuracy'])
 
-zz
-
 model.summary()
 
 print('Train...')
