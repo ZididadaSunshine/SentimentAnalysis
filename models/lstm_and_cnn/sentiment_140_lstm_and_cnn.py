@@ -1,9 +1,7 @@
 import numpy as np
-import time
-
+from keras import Input, Model
 from keras.preprocessing import sequence
-from keras.models import Sequential
-from keras.layers import Dense, Dropout, Activation
+from keras.layers import Dense, Dropout, Activation, Conv1D, GlobalMaxPooling1D
 from keras.layers import Embedding
 from keras.layers import LSTM
 from keras_preprocessing.text import Tokenizer
@@ -21,11 +19,14 @@ kernel_size = 5
 filters = 64
 pool_size = 4
 
+#Dropout
+dropout_rate = 0.25
+
 # LSTM
 lstm_output_size = 70
 
 # Training
-batch_size = 512
+batch_size = 2048
 epochs = 2
 
 print('Loading data...')
@@ -71,30 +72,47 @@ print("Deleting w2v ")
 del word2vec
 
 print('Build model...')
-model = Sequential()
-model.add(Embedding(embedding_matrix.shape[0],
-                    embedding_matrix.shape[1],
-                    weights=[embedding_matrix],
-                    input_length=maxlen,
-                    trainable=False))
-model.add(Dropout(0.25))
-model.add(LSTM(lstm_output_size))
-model.add(Dense(1))
-model.add(Activation('sigmoid'))
+emb_length = embedding_matrix.shape[0]
+emb_height = embedding_matrix.shape[1]
 
-model.compile(loss='binary_crossentropy',
+input = Input(shape=(None,))
+
+emb = Embedding(input_dim=emb_length,
+                output_dim=emb_height,
+                weights=[embedding_matrix],
+                input_length=maxlen,
+                trainable=False)(input)
+
+conv1  = Conv1D(filters=32, kernel_size=5, padding='valid', activation='relu', strides=1)(emb)
+conv11 = Conv1D(filters=64, kernel_size=5, padding='valid', activation='relu', strides=2)(conv1)
+conv12 = Conv1D(filters=128, kernel_size=4, padding='valid', activation='relu', strides=2)(conv11)
+conv13 = Conv1D(filters=128, kernel_size=3, padding='valid', activation='relu', strides=1)(conv12)
+pooled = GlobalMaxPooling1D()(conv13)
+drop1 = Dropout(dropout_rate)(pooled)
+dense1 = Dense(1, activation='sigmoid')(drop1)
+out1 = Activation('sigmoid')
+
+lstm1 = LSTM(32)(emb)
+dense2 = Dense(1, activation='sigmoid')(lstm1)
+out2 = Activation('sigmoid')
+
+
+model = Model(inputs=[input], outputs=[dense1, dense2])
+
+model.compile(loss=['binary_crossentropy', 'binary_crossentropy'],
+              loss_weights=[1., 0.1],
               optimizer='adam',
               metrics=['accuracy'])
 
-zz
-
-model.summary()
+print(model.summary())
 
 print('Train...')
-history = model.fit(x_train, y_train,
+history = model.fit(x_train,
+                    [y_train, y_train],
                     batch_size=batch_size,
                     epochs=epochs,
-                    validation_data=(x_val, y_val))
+                    validation_data=(x_val, [y_val, y_val]),
+                    shuffle=True)
 score, acc = model.evaluate(x_test, y_test, batch_size=batch_size)
 print('Test score:', score)
 print('Test accuracy:', acc)
