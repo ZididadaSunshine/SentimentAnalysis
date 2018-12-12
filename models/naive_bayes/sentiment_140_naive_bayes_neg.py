@@ -2,11 +2,11 @@ import numpy as np
 from sklearn.feature_extraction.text import CountVectorizer
 
 from sklearn.naive_bayes import MultinomialNB
-from datasets import sentiment_140
+from datasets import sentiment_140_neg
 
 maxlen = 100
 
-(x_train, y_train), (x_val, y_val), (x_test, y_test) = sentiment_140.load_data()
+(x_train, y_train), (x_val, y_val), (x_test, y_test) = sentiment_140_neg.load_data()
 
 x_train = np.concatenate((x_train, x_val))
 y_train = np.concatenate((y_train, y_val))
