@@ -1,35 +1,31 @@
 import numpy as np
-from keras.preprocessing.text import Tokenizer
+from sklearn.feature_extraction.text import CountVectorizer
+import pickle
 
-from sklearn.naive_bayes import BernoulliNB
+from sklearn.naive_bayes import MultinomialNB
 from datasets import sentiment_140
-from keras.preprocessing import sequence
+from utils.data_utils import export
 
 maxlen = 100
 
+# Get data
 (x_train, y_train), (x_val, y_val), (x_test, y_test) = sentiment_140.load_data()
 
+# No need for train and validation for bayes
 x_train = np.concatenate((x_train, x_val))
 y_train = np.concatenate((y_train, y_val))
 
-print('Fitting tokenizer')
-tokenizer = Tokenizer()
-tokenizer.fit_on_texts(np.concatenate((x_train, x_test)))
 
-print('Convert text to sequences')
-x_train = tokenizer.texts_to_sequences(x_train)
-x_test = tokenizer.texts_to_sequences(x_test)
+vectorizer = CountVectorizer()
 
-print('Pad sequences (samples x features)')
-x_train = sequence.pad_sequences(x_train, maxlen=maxlen)
-x_test = sequence.pad_sequences(x_test, maxlen=maxlen)
+# Creates vocabulary for words, and transform sentences in train to a word frequency vector.
+x_train = vectorizer.fit_transform(x_train)
+x_test = vectorizer.transform(x_test)  # transform to frequency vector.
 
-print('x_train shape:', x_train.shape)
-print('x_test shape:', x_test.shape)
+bayes = MultinomialNB()
 
-print('Fitting model')
-bnb = BernoulliNB(binarize=0.0)
-model = bnb.fit(x_train, y_train)
+bayes.fit(x_train, y_train)
 
-score = bnb.score(x_test, y_test)
-print(score)
+acc = bayes.score(x_test, y_test)
+
+export(bayes, vocabulary=vectorizer, acc=acc)
