@@ -18,7 +18,7 @@ maxlen = 100
 # Convolution
 kernel_size = 5
 filters = 96
-pool_size = 4
+pool_size = 2
 
 # RNN
 rnn_output_size = 70
@@ -64,12 +64,15 @@ print('Null word embeddings: %d' % np.sum(np.sum(embedding_matrix, axis=1) == 0)
 del word2vec
 
 print('Build model...')
+# Input
 model = Sequential()
 model.add(Embedding(embedding_matrix.shape[0],
                     embedding_matrix.shape[1],
                     weights=[embedding_matrix],
                     input_length=maxlen,
                     trainable=False))
+
+# First part
 model.add(Conv1D(filters,
                  kernel_size,
                  padding='valid',
@@ -86,28 +89,32 @@ model.add(Conv1D(filters,
                  activation='relu',
                  strides=1))
 model.add(MaxPooling1D(pool_size=pool_size))
-model.add(Conv1D(filters,
+
+# Second part
+model.add(Conv1D(filters * 2,
                  kernel_size,
                  padding='valid',
                  activation='relu',
                  strides=1))
-model.add(Conv1D(filters,
+model.add(Conv1D(filters * 2,
                  kernel_size,
                  padding='valid',
                  activation='relu',
                  strides=1))
-model.add(Conv1D(filters,
+model.add(Conv1D(filters * 2,
                  kernel_size,
                  padding='valid',
                  activation='relu',
                  strides=1))
 model.add(MaxPooling1D(pool_size=pool_size))
-model.add(Conv1D(filters,
+
+# Third part
+model.add(Conv1D(filters * 2,
                  kernel_size,
                  padding='valid',
                  activation='relu',
                  strides=1))
-model.add(Conv1D(filters,
+model.add(Conv1D(filters * 2,
                  1,
                  padding='valid',
                  activation='relu',

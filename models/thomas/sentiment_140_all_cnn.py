@@ -63,37 +63,16 @@ print('Null word embeddings: %d' % np.sum(np.sum(embedding_matrix, axis=1) == 0)
 del word2vec
 
 print('Build model...')
+
+# Input handling
 model = Sequential()
 model.add(Embedding(embedding_matrix.shape[0],
                     embedding_matrix.shape[1],
                     weights=[embedding_matrix],
                     input_length=maxlen,
                     trainable=False))
-model.add(Conv1D(filters,
-                 kernel_size,
-                 padding='valid',
-                 activation='relu',
-                 strides=1))
-model.add(Conv1D(filters,
-                 kernel_size,
-                 padding='valid',
-                 activation='relu',
-                 strides=1))
-model.add(Conv1D(filters,
-                 kernel_size,
-                 padding='valid',
-                 activation='relu',
-                 strides=1))
-model.add(Conv1D(filters,
-                 kernel_size,
-                 padding='valid',
-                 activation='relu',
-                 strides=2))
-model.add(Conv1D(filters,
-                 kernel_size,
-                 padding='valid',
-                 activation='relu',
-                 strides=1))
+
+# First part
 model.add(Conv1D(filters,
                  kernel_size,
                  padding='valid',
@@ -109,12 +88,31 @@ model.add(Conv1D(filters,
                  padding='valid',
                  activation='relu',
                  strides=2))
-model.add(Conv1D(filters,
+
+# Second Part
+model.add(Conv1D(filters * 2,
                  kernel_size,
                  padding='valid',
                  activation='relu',
                  strides=1))
-model.add(Conv1D(filters,
+model.add(Conv1D(filters * 2,
+                 kernel_size,
+                 padding='valid',
+                 activation='relu',
+                 strides=1))
+model.add(Conv1D(filters * 2,
+                 kernel_size,
+                 padding='valid',
+                 activation='relu',
+                 strides=2))
+
+# Last part
+model.add(Conv1D(filters * 2,
+                 kernel_size,
+                 padding='valid',
+                 activation='relu',
+                 strides=1))
+model.add(Conv1D(filters * 2,
                  1,
                  padding='valid',
                  activation='relu',
